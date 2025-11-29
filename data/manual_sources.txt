@@ -1,0 +1,4 @@
+https://raw.githubusercontent.com/ayobamee/ussd-codes/main/nigeria-ussd-codes.json
+https://raw.githubusercontent.com/unicodeveloper/awesome-ussd/master/ussd-codes.json
+https://raw.githubusercontent.com/michaeldera/ng-ussd-codes/master/ussd-codes.json
+file:///home/superuser/CyberMiniService/data/curated_codes.json

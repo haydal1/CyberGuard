@@ -1,0 +1,202 @@
+[
+  {
+    "code": "*901#",
+    "type": "bank",
+    "provider": "First Bank",
+    "description": "FirstBank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*902#",
+    "type": "bank", 
+    "provider": "Union Bank",
+    "description": "Union Bank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*909#",
+    "type": "bank",
+    "provider": "Zenith Bank", 
+    "description": "Zenith Bank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*911#",
+    "type": "bank",
+    "provider": "Fidelity Bank",
+    "description": "Fidelity Bank USSD banking",
+    "reference": "Official bank website", 
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*826#",
+    "type": "bank",
+    "provider": "Sterling Bank",
+    "description": "Sterling Bank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*989#", 
+    "type": "bank",
+    "provider": "Ecobank",
+    "description": "Ecobank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*945#",
+    "type": "bank",
+    "provider": "GTBank", 
+    "description": "GTBank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*322#",
+    "type": "bank",
+    "provider": "Access Bank",
+    "description": "Access Bank USSD banking",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*737#",
+    "type": "bank", 
+    "provider": "GTBank USSD",
+    "description": "GTBank USSD services",
+    "reference": "Official bank website",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*123#",
+    "type": "telco",
+    "provider": "MTN Nigeria", 
+    "description": "MTN services menu",
+    "reference": "MTN official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*310#",
+    "type": "telco",
+    "provider": "MTN Nigeria",
+    "description": "MTN balance check",
+    "reference": "MTN official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*311#",
+    "type": "telco",
+    "provider": "MTN Nigeria",
+    "description": "MTN data balance", 
+    "reference": "MTN official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*121#",
+    "type": "telco",
+    "provider": "Airtel Nigeria",
+    "description": "Airtel services menu",
+    "reference": "Airtel official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*124#",
+    "type": "telco",
+    "provider": "Glo Nigeria",
+    "description": "Glo services menu", 
+    "reference": "Glo official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*232#",
+    "type": "telco",
+    "provider": "9mobile",
+    "description": "9mobile services menu",
+    "reference": "9mobile official",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*199#",
+    "type": "service",
+    "provider": "Lagos State", 
+    "description": "Lagos emergency services",
+    "reference": "Lagos State Government",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*#06#",
+    "type": "service",
+    "provider": "All Networks",
+    "description": "IMEI number check",
+    "reference": "Standard USSD code",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*#61#",
+    "type": "service",
+    "provider": "All Networks", 
+    "description": "Missed call notification check",
+    "reference": "Standard USSD code",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*#21#",
+    "type": "service",
+    "provider": "All Networks",
+    "description": "Call forwarding status",
+    "reference": "Standard USSD code",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  },
+  {
+    "code": "*#62#",
+    "type": "service",
+    "provider": "All Networks",
+    "description": "Call forwarding when unavailable", 
+    "reference": "Standard USSD code",
+    "added_by": "system",
+    "timestamp": "2025-11-28T06:35:00.000000",
+    "verified": true
+  }
+]

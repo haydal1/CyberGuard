@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CyberGuard – FULL MODE Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;margin:12px;background:#f4f4f9;color:#222}
+  h1{text-align:center;color:#0d47a1}
+  section{background:white;padding:12px;margin-bottom:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  label{font-weight:600}
+  input,select,button,textarea{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ccc}
+  button{background:#0d47a1;color:#fff;border:none;cursor:pointer}
+  .row{display:flex;gap:12px}
+  .col{flex:1}
+  #map{height:360px;border-radius:8px;margin-top:8px}
+  .report-card{border:1px solid #ddd;border-radius:8px;padding:10px;margin-bottom:10px;background:#fff}
+  .badge{display:inline-block;padding:4px 8px;border-radius:6px;color:#fff;font-weight:700;margin-left:8px}
+  .safe{background:#2e7d32}.scam{background:#c62828}.unsafe{background:#f57f17}.pending{background:#6c757d}
+  .admin-actions{margin-top:8px;display:flex;gap:6px}
+  pre{background:#f7f7f7;padding:8px;border-radius:6px;overflow:auto}
+</style>
+</head>
+<body>
+  <h1>📱 CyberGuard – FULL MODE</h1>
+
+  <!-- Controls -->
+  <section>
+    <div class="row">
+      <div class="col">
+        <label>FULL MODE</label>
+        <select id="full-mode-select">
+          <option value="false">Offline-first (No online verification)</option>
+          <option value="true">Full Mode (Attempt online verification when available)</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>Sync USSD from trusted URLs (admin)</label>
+        <input id="sync-urls" placeholder="Paste comma-separated URLs or leave empty to use configured sources" />
+        <button id="sync-btn">Sync USSD (Admin)</button>
+        <div id="sync-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Submit Report -->
+  <section>
+    <label>Report Type</label>
+    <select id="report-type"><option value="sms">SMS Scam</option><option value="ussd">USSD Fraud</option></select>
+
+    <label>Content</label>
+    <input id="report-content" placeholder="Paste SMS text or USSD code (e.g. *123# or You have won!)" />
+
+    <label>Location (City/Region, Optional)</label>
+    <input id="report-location" placeholder="e.g., Lagos, Abuja" />
+
+    <label>Username (optional)</label>
+    <input id="report-username" placeholder="Your name or Anonymous" />
+
+    <button id="submit-btn">Submit Report</button>
+    <div id="submit-result"></div>
+  </section>
+
+  <!-- Report feed -->
+  <section>
+    <h3>Community Reports (newest first)</h3>
+    <div id="report-feed"></div>
+  </section>
+
+  <!-- Map -->
+  <section>
+    <h3>Report Map</h3>
+    <div id="map"></div>
+  </section>
+
+  <!-- Device -->
+  <section>
+    <h3>Device Checklist</h3>
+    <button id="device-btn">Check Device Info</button>
+    <pre id="device-info">Click to load device info</pre>
+  </section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const API_BASE = ""; // relative
+
+  // map init
+  let map = L.map('map').setView([9.0820,8.6753],6);
+  let tiles;
+  try {
+    tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+  } catch (e) {
+    console.warn("Map tiles may not load (offline). Markers still appear.");
+  }
+  let markersLayer = L.layerGroup().addTo(map);
+
+  // helpers
+  const el = id => document.getElementById(id);
+  const fullModeEnabled = () => el('full-mode-select').value === "true";
+
+  // submit
+  el('submit-btn').addEventListener('click', async ()=>{
+    const report_type = el('report-type').value;
+    const content = el('report-content').value.trim();
+    const location = el('report-location').value.trim();
+    const username = el('report-username').value.trim() || "Anonymous";
+    if(!content){ alert("Enter content"); return; }
+    try {
+      const resp = await fetch(API_BASE + "/community/report", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({report_type, content, location, username})
+      });
+      const j = await resp.json();
+      el('submit-result').innerText = JSON.stringify(j, null, 2);
+      el('report-content').value = "";
+      el('report-location').value = "";
+      el('report-username').value = "";
+      fetchFeed();
+    } catch(e){ console.error(e); alert("Submit failed"); }
+  });
+
+  // sync
+  el('sync-btn').addEventListener('click', async ()=>{
+    const raw = el('sync-urls').value.trim();
+    const urls = raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : null;
+    try {
+      const resp = await fetch(API_BASE + "/admin/sync-ussd", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({urls})
+      });
+      const j = await resp.json();
+      el('sync-result').innerText = JSON.stringify(j, null, 2);
+      fetchFeed();
+    } catch(e){ console.error(e); el('sync-result').innerText = "Sync failed: " + e; }
+  });
+
+  // feed fetch and render with full-mode checks
+  async function fetchFeed(){
+    try {
+      const resp = await fetch(API_BASE + "/community/reports");
+      const j = await resp.json();
+      const container = el('report-feed');
+      container.innerHTML = "";
+      // reset markers
+      if(markersLayer) map.removeLayer(markersLayer);
+      markersLayer = L.layerGroup().addTo(map);
+
+      // iterate newest first
+      const reports = (j.reports || []).slice().reverse();
+      for(let i=0;i<reports.length;i++){
+        const r = reports[i];
+        const card = document.createElement('div');
+        card.className = "report-card";
+
+        // do live check
+        let check = null;
+        try {
+          const qs = fullModeEnabled() ? "?full_mode=true" : "?full_mode=false";
+          if(r.report_type === "sms"){
+            const res = await fetch(API_BASE + "/check-sms-scam?content=" + encodeURIComponent(r.content));
+            check = await res.json();
+          } else if(r.report_type === "ussd"){
+            const res = await fetch(API_BASE + "/check-ussd?code=" + encodeURIComponent(r.content) + "&full_mode=" + (fullModeEnabled() ? "true" : "false"));
+            check = await res.json();
+          }
+        } catch(e){
+          console.warn("Check failed", e);
+        }
+
+        // badge logic
+        let badgeText = "PENDING", badgeClass = "pending";
+        if(check){
+          if(r.report_type === "sms"){
+            badgeText = check.scam ? "SCAM" : "SAFE";
+            badgeClass = check.scam ? "scam" : "safe";
+          } else if(r.report_type === "ussd"){
+            // check.safe boolean and score & reasons available
+            if(check.safe === true) { badgeText = "SAFE"; badgeClass = "safe"; }
+            else if(check.safe === false && (check.score >= 7)) { badgeText = "UNSAFE"; badgeClass = "scam"; }
+            else { badgeText = "SUSPICIOUS"; badgeClass = "unsafe"; }
+          }
+        }
+
+        // build card inner HTML
+        card.innerHTML = `<b>${r.report_type.toUpperCase()}</b> <span class="badge ${badgeClass}">${badgeText}</span>
+                          <div style="margin-top:6px">${r.content}</div>
+                          <div style="color:#666;font-size:13px;margin-top:6px">${r.location || "Unknown"} — ${r.timestamp}</div>`;
+
+        // if check details available, append
+        if(check){
+          let details = "<div style='margin-top:8px;font-size:13px;color:#333'><b>Check details:</b><br/>";
+          if(r.report_type === "ussd"){
+            details += `Score: ${check.score} <br/>Safe: ${check.safe} <br/>Verified online: ${check.verified_online} <br/>Reasons: ${(check.reasons||[]).join("; ")}`;
+          } else if(r.report_type === "sms"){
+            details += `Scam flagged: ${check.scam}`;
+          }
+          details += "</div>";
+          card.innerHTML += details;
+        }
+
+        // admin actions
+        const adminDiv = document.createElement("div");
+        adminDiv.className = "admin-actions";
+        const idx = i; // index in reversed array (for display only)
+        // Approve button => sets status Verified and optionally add safety
+        const approveBtn = document.createElement("button");
+        approveBtn.innerText = "Verify";
+        approveBtn.onclick = async () => {
+          // find original index in stored reports (we'll fetch full reports to find index)
+          const all = await (await fetch(API_BASE + "/community/reports")).json();
+          const origIndex = all.reports.findIndex(rr => rr.timestamp === r.timestamp && rr.content === r.content && rr.username === r.username);
+          if(origIndex === -1){ alert("Cannot find report index"); return; }
+          // ask whether to add to safe or blacklist
+          const action = confirm("Add this code/content to safe list? (OK = add to safe, Cancel = add to blacklist)") ? "add_safe" : "add_blacklist";
+          const res = await fetch(API_BASE + "/community/update-report", {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({index: origIndex, status:"Verified", action})
+          });
+          const j = await res.json();
+          alert("Updated: " + JSON.stringify(j));
+          fetchFeed();
+        };
+        adminDiv.appendChild(approveBtn);
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.innerText = "Reject";
+        rejectBtn.onclick = async () => {
+          const all = await (await fetch(API_BASE + "/community/reports")).json();
+          const origIndex = all.reports.findIndex(rr => rr.timestamp === r.timestamp && rr.content === r.content && rr.username === r.username);
+          if(origIndex === -1){ alert("Cannot find report index"); return; }
+          const res = await fetch(API_BASE + "/community/update-report", {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({index: origIndex, status:"Rejected"})
+          });
+          const j = await res.json();
+          alert("Updated: " + JSON.stringify(j));
+          fetchFeed();
+        };
+        adminDiv.appendChild(rejectBtn);
+
+        card.appendChild(adminDiv);
+        container.appendChild(card);
+
+        // marker
+        if(r.lat && r.lon){
+          try {
+            L.marker([r.lat, r.lon]).bindPopup(`<b>${r.report_type.toUpperCase()}</b><br/>${r.content}<br/>${r.location}`).addTo(markersLayer);
+          } catch(e){ console.warn("Marker", e); }
+        }
+      }
+    } catch(e){
+      console.error("Failed to fetch feed", e);
+    }
+  }
+
+  // device
+  el('device-btn').addEventListener('click', async ()=>{
+    try {
+      const r = await fetch(API_BASE + "/device-checklist");
+      const j = await r.json();
+      el('device-info').innerText = JSON.stringify(j, null, 2);
+    } catch(e){ console.error(e); el('device-info').innerText = "Device check failed"; }
+  });
+
+  // initial load
+  fetchFeed();
+  // refresh feed every 20s to pick up new reports
+  setInterval(fetchFeed, 20000);
+</script>
+</body>
+</html>

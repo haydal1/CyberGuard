@@ -1,0 +1,482 @@
+[
+  {
+    "report_type": "sms",
+    "content": "Suspicious SMS",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-27 23:04:29.215374",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "sms",
+    "content": "\"test sms scam\"",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-27 23:42:38.208607",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "url",
+    "content": "http://go.vi",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-27 23:52:37.348982",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "sms",
+    "content": "You have won a free prize",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 00:11:44.388194",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*199#",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 00:32:40.309856",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "sms",
+    "content": "submit your bvn",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 00:55:04.019060",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "sms",
+    "content": "You have won a free prize",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 00:56:06.019150",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "sms",
+    "content": "You have won a free prize!",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:01:26.635492",
+    "status": "Pending",
+    "lat": 9.05785,
+    "lon": 7.49508
+  },
+  {
+    "report_type": "sms",
+    "content": "Hello, how are you?",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:02:46.668299",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "sms",
+    "content": "*199#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:04:18.890084",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "sms",
+    "content": "*222#",
+    "location": "Nasarawa",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:05:41.212091",
+    "status": "Pending",
+    "lat": 8.4387868,
+    "lon": 8.2382849
+  },
+  {
+    "report_type": "sms",
+    "content": "*9001#",
+    "location": "Abia",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:06:14.651168",
+    "status": "Pending",
+    "lat": 5.4540953,
+    "lon": 7.5153071
+  },
+  {
+    "report_type": "sms",
+    "content": "*111#",
+    "location": "Abia",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:06:58.651212",
+    "status": "Pending",
+    "lat": 5.4540953,
+    "lon": 7.5153071
+  },
+  {
+    "report_type": "sms",
+    "content": "*773#",
+    "location": "Jos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:07:34.978284",
+    "status": "Pending",
+    "lat": 9.9175125,
+    "lon": 8.8979401
+  },
+  {
+    "report_type": "sms",
+    "content": "*717#",
+    "location": "Enugu",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:07:59.913993",
+    "status": "Pending",
+    "lat": 6.4496519,
+    "lon": 7.5136856
+  },
+  {
+    "report_type": "ussd",
+    "content": "*199#",
+    "location": "Abia",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 01:09:51.452555",
+    "status": "Pending",
+    "lat": 5.4540953,
+    "lon": 7.5153071
+  },
+  {
+    "report_type": "ussd",
+    "content": "*3434#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:19:40.283005",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*8887#",
+    "location": "Nasarawa",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:20:56.395634",
+    "status": "Pending",
+    "lat": 8.4387868,
+    "lon": 8.2382849
+  },
+  {
+    "report_type": "ussd",
+    "content": "*21#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:22:20.124591",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*#61#",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:24:50.478776",
+    "status": "Pending",
+    "lat": 9.05785,
+    "lon": 7.49508
+  },
+  {
+    "report_type": "ussd",
+    "content": "*199#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:25:34.059628",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*97645756*2#",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:26:03.879017",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*#61#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 02:38:57.490977",
+    "status": "Pending",
+    "lat": 6.5244,
+    "lon": 3.3792
+  },
+  {
+    "report_type": "sms",
+    "content": "you won a free money",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 03:05:32.183474",
+    "status": "Pending",
+    "lat": 6.5244,
+    "lon": 3.3792
+  },
+  {
+    "report_type": "sms",
+    "content": "congratulations",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 03:06:00.325300",
+    "status": "Pending",
+    "lat": 9.05785,
+    "lon": 7.49508
+  },
+  {
+    "report_type": "sms",
+    "content": "you won a free money, call mr ben",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 03:06:40.076970",
+    "status": "Pending",
+    "lat": 9.05785,
+    "lon": 7.49508
+  },
+  {
+    "report_type": "sms",
+    "content": "You have won a free prize!",
+    "location": "Abuja",
+    "username": "kigbu",
+    "timestamp": "2025-11-28 03:11:25.774231",
+    "status": "Pending",
+    "lat": 9.05785,
+    "lon": 7.49508
+  },
+  {
+    "report_type": "ussd",
+    "content": "*199#",
+    "location": "Lagos",
+    "username": "sham",
+    "timestamp": "2025-11-28 03:13:41.845168",
+    "status": "Pending",
+    "lat": 6.5244,
+    "lon": 3.3792
+  },
+  {
+    "report_type": "ussd",
+    "content": "*97645756*2#",
+    "location": "Nasarawa",
+    "username": "Hamad",
+    "timestamp": "2025-11-28 03:15:50.966871",
+    "status": "Pending",
+    "lat": 8.5083,
+    "lon": 8.5215
+  },
+  {
+    "report_type": "ussd",
+    "content": "*35364362*2#",
+    "location": "",
+    "username": "hassan",
+    "timestamp": "2025-11-28 03:32:18.227795",
+    "status": "Pending",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "report_type": "ussd",
+    "content": "*635337467*2#",
+    "location": "Abuja",
+    "username": "hay",
+    "timestamp": "2025-11-28 04:05:34.303709",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*24542#",
+    "location": "Lagos",
+    "username": "Nam",
+    "timestamp": "2025-11-28 04:16:44.703752",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*121#",
+    "location": "abuja",
+    "username": "anam",
+    "timestamp": "2025-11-28 04:27:00.488271",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*635337467*2#",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:28:02.455637",
+    "status": "Pending",
+    "lat": 6.5244,
+    "lon": 3.3792
+  },
+  {
+    "report_type": "ussd",
+    "content": "*123*1#",
+    "location": "Nasarawa",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:28:57.586358",
+    "status": "Pending",
+    "lat": 8.4387868,
+    "lon": 8.2382849
+  },
+  {
+    "report_type": "sms",
+    "content": "\"Test Scam SMS\"",
+    "location": "Lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:30:02.238645",
+    "status": "Pending",
+    "lat": 6.5244,
+    "lon": 3.3792
+  },
+  {
+    "report_type": "sms",
+    "content": "\"You have won $1,000,000! Call 08012345678 to claim your prize\"",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:30:58.799339",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*123*1#",
+    "location": "Abuja",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:44:02.391633",
+    "status": "Pending",
+    "lat": 9.0643305,
+    "lon": 7.4892974
+  },
+  {
+    "report_type": "ussd",
+    "content": "*123*1#",
+    "location": "Nasarawa",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28 04:47:55.705725",
+    "status": "Pending",
+    "lat": 8.5083,
+    "lon": 8.5215
+  },
+  {
+    "report_type": "ussd",
+    "content": "*65365*7#",
+    "location": "Nasarawa",
+    "username": "kin",
+    "timestamp": "2025-11-28T05:10:23.632755",
+    "status": "Pending",
+    "lat": 8.4387868,
+    "lon": 8.2382849
+  },
+  {
+    "report_type": "ussd",
+    "content": "*55244243#",
+    "location": "Enugu",
+    "username": "wak",
+    "timestamp": "2025-11-28T05:11:02.530310",
+    "status": "Pending",
+    "lat": 6.4496519,
+    "lon": 7.5136856
+  },
+  {
+    "report_type": "ussd",
+    "content": "*126#",
+    "location": "lagos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28T05:13:24.839338",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*123*bvn*12345678901#",
+    "location": "Jos",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28T05:14:16.052043",
+    "status": "Pending",
+    "lat": 9.9175125,
+    "lon": 8.8979401
+  },
+  {
+    "report_type": "ussd",
+    "content": "*12345*67890#",
+    "location": "makurdi",
+    "username": "Anonymous",
+    "timestamp": "2025-11-28T05:15:19.193200",
+    "status": "Pending",
+    "lat": 7.7312634,
+    "lon": 8.538425
+  },
+  {
+    "report_type": "sms",
+    "content": "Your account has been locked. Click http://fake-bank.com to unlock\"",
+    "location": "Lagos",
+    "username": "ben",
+    "timestamp": "2025-11-28T05:16:26.932175",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "sms",
+    "content": "\"Your OTP is 123456\"",
+    "location": "Kaduna",
+    "username": "amn",
+    "timestamp": "2025-11-28T05:17:26.091905",
+    "status": "Pending",
+    "lat": 10.5182899,
+    "lon": 7.4359863
+  },
+  {
+    "report_type": "sms",
+    "content": "\"Your OTP is 123456\"",
+    "location": "lagos",
+    "username": "non",
+    "timestamp": "2025-11-28T05:25:16.607159",
+    "status": "Pending",
+    "lat": 6.4550575,
+    "lon": 3.3941795
+  },
+  {
+    "report_type": "ussd",
+    "content": "*123*bvn*12345678901#",
+    "location": "enugu",
+    "username": "lak",
+    "timestamp": "2025-11-28T05:26:30.741811",
+    "status": "Pending",
+    "lat": 6.44,
+    "lon": 7.4946
+  }
+]

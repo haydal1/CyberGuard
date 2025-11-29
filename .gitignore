@@ -1,0 +1,33 @@
+# Android build files
+*.apk
+*.aab
+*.keystore
+build/
+.gradle/
+.idea/
+captures/
+app/build/
+*.iml
+local.properties
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.log
+*.pyc
+.python-version
+
+# Database backups  
+*_backup.json
+ussd_suggestions.json
+server.log
+
+# Large files
+*.apk
+*.zip
+*.tar.gz
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard - Admin Curation</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --gray: #6b7280;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: block;
+        }
+        
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #15803d;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .code-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+        }
+        
+        .code-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .code-item:last-child {
+            border-bottom: none;
+        }
+        
+        .code-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .code-meta {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .badge-safe {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge-bank {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-telco {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-service {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .search-box {
+            margin-bottom: 1rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            padding: 0.25rem 0.75rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ CyberGuard - Manual Curation System</h1>
+            <p class="subtitle">Build the authoritative USSD code database</p>
+        </header>
+
+        <div class="stats-grid" id="stats-container">
+            <div class="stat-card">
+                <span class="stat-number" id="total-codes">0</span>
+                <span class="stat-label">Total Codes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="verified-codes">0</span>
+                <span class="stat-label">Verified Codes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="bank-codes">0</span>
+                <span class="stat-label">Bank Codes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="pending-reports">0</span>
+                <span class="stat-label">Pending Reports</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('add-code')">Add New Code</button>
+            <button class="tab" onclick="switchTab('manage-codes')">Manage Codes</button>
+            <button class="tab" onclick="switchTab('pending-reports')">Pending Reports</button>
+            <button class="tab" onclick="switchTab('import-export')">Import/Export</button>
+        </div>
+
+        <!-- Add New Code Tab -->
+        <div id="add-code" class="tab-content active">
+            <div class="grid-2col">
+                <div class="card">
+                    <h3>➕ Add Single Code</h3>
+                    <form id="add-code-form">
+                        <div class="form-group">
+                            <label for="ussd-code">USSD Code</label>
+                            <input type="text" id="ussd-code" placeholder="*901#" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="code-type">Code Type</label>
+                            <select id="code-type" required>
+                                <option value="">Select type...</option>
+                                <option value="bank">Banking</option>
+                                <option value="telco">Telecom</option>
+                                <option value="service">Service</option>
+                                <option value="utility">Utility</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="provider">Service Provider</label>
+                            <input type="text" id="provider" placeholder="e.g., First Bank, MTN" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" placeholder="What this code does..." rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reference">Reference/Source</label>
+                            <input type="text" id="reference" placeholder="Official website, documentation...">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Add to Database</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>📁 Bulk Import</h3>
+                    <form id="bulk-import-form">
+                        <div class="form-group">
+                            <label for="bulk-codes">Paste Codes (one per line)</label>
+                            <textarea id="bulk-codes" placeholder="*901# - First Bank&#10;*902# - Union Bank&#10;*123# - MTN" rows="10"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bulk-type">Default Type</label>
+                            <select id="bulk-type">
+                                <option value="bank">Banking</option>
+                                <option value="telco">Telecom</option>
+                                <option value="service">Service</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">Import Codes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Codes Tab -->
+        <div id="manage-codes" class="tab-content">
+            <div class="card">
+                <h3>📋 Manage Verified Codes</h3>
+                <div class="search-box">
+                    <input type="text" id="search-codes" placeholder="Search codes...">
+                </div>
+                <div class="code-list" id="codes-list">
+                    <div class="loading">Loading codes...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Reports Tab -->
+        <div id="pending-reports" class="tab-content">
+            <div class="card">
+                <h3>⏳ Pending Community Reports</h3>
+                <div class="code-list" id="pending-list">
+                    <div class="loading">Loading pending reports...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import/Export Tab -->
+        <div id="import-export" class="tab-content">
+            <div class="grid-2col">
+                <div class="card">
+                    <h3>📤 Export Database</h3>
+                    <p>Export your verified USSD codes in various formats:</p>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="exportData('json')">Export as JSON</button>
+                        <button class="btn btn-success" onclick="exportData('csv')">Export as CSV</button>
+                        <button class="btn" onclick="exportData('txt')">Export as Text</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📥 Import from File</h3>
+                    <form id="file-import-form">
+                        <div class="form-group">
+                            <label for="file-import">Select file to import</label>
+                            <input type="file" id="file-import" accept=".json,.csv,.txt">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Import File</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="alert-container"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let allCodes = [];
+        let pendingReports = [];
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Load initial data
+        async function loadInitialData() {
+            await loadStats();
+            await loadAllCodes();
+            await loadPendingReports();
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/curation/stats`);
+                const data = await response.json();
+                
+                document.getElementById('total-codes').textContent = data.total_codes || 0;
+                document.getElementById('verified-codes').textContent = data.verified_codes || 0;
+                document.getElementById('bank-codes').textContent = data.bank_codes || 0;
+                document.getElementById('pending-reports').textContent = data.pending_reports || 0;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Load all verified codes
+        async function loadAllCodes() {
+            try {
+                const response = await fetch(`${API_BASE}/curation/codes`);
+                allCodes = await response.json();
+                renderCodeList();
+            } catch (error) {
+                console.error('Failed to load codes:', error);
+            }
+        }
+
+        // Load pending reports
+        async function loadPendingReports() {
+            try {
+                const response = await fetch(`${API_BASE}/curation/pending`);
+                pendingReports = await response.json();
+                renderPendingList();
+            } catch (error) {
+                console.error('Failed to load pending reports:', error);
+            }
+        }
+
+        // Render code list
+        function renderCodeList() {
+            const container = document.getElementById('codes-list');
+            const searchTerm = document.getElementById('search-codes').value.toLowerCase();
+            
+            const filteredCodes = allCodes.filter(code => 
+                code.code.toLowerCase().includes(searchTerm) ||
+                code.provider.toLowerCase().includes(searchTerm) ||
+                code.description.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredCodes.length === 0) {
+                container.innerHTML = '<div class="loading">No codes found</div>';
+                return;
+            }
+
+            container.innerHTML = filteredCodes.map(code => `
+                <div class="code-item">
+                    <div>
+                        <div class="code-text">${code.code}</div>
+                        <div class="code-meta">
+                            ${code.provider} • ${code.description}
+                            <span class="badge badge-${code.type}">${code.type}</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn btn-danger" onclick="deleteCode('${code.code}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render pending reports list
+        function renderPendingList() {
+            const container = document.getElementById('pending-list');
+            
+            if (pendingReports.length === 0) {
+                container.innerHTML = '<div class="loading">No pending reports</div>';
+                return;
+            }
+
+            container.innerHTML = pendingReports.map(report => `
+                <div class="code-item">
+                    <div>
+                        <div class="code-text">${report.content}</div>
+                        <div class="code-meta">
+                            Reported by ${report.username} from ${report.location}
+                            <br>${new Date(report.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn btn-success" onclick="approveReport(${report.index})">Approve</button>
+                        <button class="action-btn btn-danger" onclick="rejectReport(${report.index})">Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add single code
+        document.getElementById('add-code-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                code: document.getElementById('ussd-code').value,
+                type: document.getElementById('code-type').value,
+                provider: document.getElementById('provider').value,
+                description: document.getElementById('description').value,
+                reference: document.getElementById('reference').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/curation/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    document.getElementById('add-code-form').reset();
+                    loadInitialData();
+                }
+            } catch (error) {
+                showAlert('Failed to add code', 'error');
+            }
+        });
+
+        // Bulk import
+        document.getElementById('bulk-import-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const codesText = document.getElementById('bulk-codes').value;
+            const defaultType = document.getElementById('bulk-type').value;
+            
+            const codes = codesText.split('\n')
+                .filter(line => line.trim())
+                .map(line => {
+                    const [code, ...rest] = line.split('-');
+                    return {
+                        code: code.trim(),
+                        type: defaultType,
+                        provider: rest.join('-').trim() || 'Unknown',
+                        description: 'Imported via bulk import'
+                    };
+                });
+
+            try {
+                const response = await fetch(`${API_BASE}/curation/bulk-add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codes })
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    document.getElementById('bulk-import-form').reset();
+                    loadInitialData();
+                }
+            } catch (error) {
+                showAlert('Failed to import codes', 'error');
+            }
+        });
+
+        // File import
+        document.getElementById('file-import-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('file-import');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('Please select a file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/curation/import-file`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    fileInput.value = '';
+                    loadInitialData();
+                }
+            } catch (error) {
+                showAlert('Failed to import file', 'error');
+            }
+        });
+
+        // Search functionality
+        document.getElementById('search-codes').addEventListener('input', renderCodeList);
+
+        // Approve report
+        async function approveReport(index) {
+            try {
+                const response = await fetch(`${API_BASE}/curation/approve-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                loadInitialData();
+            } catch (error) {
+                showAlert('Failed to approve report', 'error');
+            }
+        }
+
+        // Reject report
+        async function rejectReport(index) {
+            try {
+                const response = await fetch(`${API_BASE}/curation/reject-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index })
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                loadInitialData();
+            } catch (error) {
+                showAlert('Failed to reject report', 'error');
+            }
+        }
+
+        // Delete code
+        async function deleteCode(code) {
+            if (!confirm(`Are you sure you want to delete ${code}?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/curation/delete`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                const result = await response.json();
+                showAlert(result.message, response.ok ? 'success' : 'error');
+                loadInitialData();
+            } catch (error) {
+                showAlert('Failed to delete code', 'error');
+            }
+        }
+
+        // Export data
+        async function exportData(format) {
+            try {
+                const response = await fetch(`${API_BASE}/curation/export?format=${format}`);
+                const blob = await response.blob();
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ussd-codes-${new Date().toISOString().split('T')[0]}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showAlert(`Exported successfully as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                showAlert('Failed to export data', 'error');
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadInitialData);
+    </script>
+</body>
+</html>

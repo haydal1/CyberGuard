@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CyberGuard – FULL HYBRID</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;margin:12px;background:#f4f4f9;color:#222}
+  h1{text-align:center;color:#0d47a1}
+  section{background:white;padding:12px;margin-bottom:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  label{font-weight:600}
+  input,select,button,textarea{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ccc}
+  button{background:#0d47a1;color:#fff;border:none;cursor:pointer}
+  .row{display:flex;gap:12px}
+  .col{flex:1}
+  #map{height:360px;border-radius:8px;margin-top:8px}
+  .report-card{border:1px solid #ddd;border-radius:8px;padding:10px;margin-bottom:10px;background:#fff}
+  .badge{display:inline-block;padding:4px 8px;border-radius:6px;color:#fff;font-weight:700;margin-left:8px}
+  .safe{background:#2e7d32}.scam{background:#c62828}.unsafe{background:#f57f17}.pending{background:#6c757d}
+  .admin-actions{margin-top:8px;display:flex;gap:6px}
+  pre{background:#f7f7f7;padding:8px;border-radius:6px;overflow:auto}
+</style>
+</head>
+<body>
+  <h1>📱 CyberGuard – FULL HYBRID</h1>
+
+  <section>
+    <div class="row">
+      <div class="col">
+        <label>Mode</label>
+        <select id="full-mode-select">
+          <option value="false">Offline-first (no online verification)</option>
+          <option value="true">Full (try online verification when available)</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>Sync USSD (Admin)</label>
+        <input id="sync-urls" placeholder="Comma-separated URLs (optional)" />
+        <button id="sync-btn">Sync USSD</button>
+        <div id="sync-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <label>Report Type</label>
+    <select id="report-type"><option value="sms">SMS Scam</option><option value="ussd">USSD Fraud</option></select>
+    <label>Content</label>
+    <input id="report-content" placeholder="Paste SMS text or USSD code" />
+    <label>Location (optional)</label>
+    <input id="report-location" placeholder="Lagos, Abuja etc." />
+    <label>Username (optional)</label>
+    <input id="report-username" placeholder="Anonymous" />
+    <button id="submit-btn">Submit Report</button>
+    <div id="submit-result"></div>
+  </section>
+
+  <section>
+    <h3>Community Reports (newest first)</h3>
+    <div id="report-feed"></div>
+  </section>
+
+  <section>
+    <h3>Report Map</h3>
+    <div id="map"></div>
+  </section>
+
+  <section>
+    <h3>Device Checklist</h3>
+    <button id="device-btn">Check Device Info</button>
+    <pre id="device-info">Click to load device info</pre>
+  </section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const API = ""; // relative
+const el = id => document.getElementById(id);
+
+let map = L.map('map').setView([9.0820,8.6753],6);
+try {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+} catch(e) { console.warn("Tile load failed"); }
+let markersLayer = L.layerGroup().addTo(map);
+
+el('submit-btn').addEventListener('click', async ()=>{
+  const report_type = el('report-type').value;
+  const content = el('report-content').value.trim();
+  const location = el('report-location').value.trim();
+  const username = el('report-username').value.trim() || "Anonymous";
+  if(!content){ alert("Enter content"); return; }
+  try {
+    const resp = await fetch(API + "/community/report", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({report_type, content, location, username})
+    });
+    const j = await resp.json();
+    el('submit-result').innerText = JSON.stringify(j, null, 2);
+    el('report-content').value = ""; el('report-location').value = ""; el('report-username').value = "";
+    await fetchFeed();
+  } catch(e){ console.error(e); alert("Submit failed: " + e); }
+});
+
+el('sync-btn').addEventListener('click', async ()=>{
+  const raw = el('sync-urls').value.trim();
+  const urls = raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : null;
+  try {
+    const resp = await fetch(API + "/admin/sync-ussd", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({urls})
+    });
+    const j = await resp.json();
+    el('sync-result').innerText = JSON.stringify(j, null, 2);
+    await fetchFeed();
+  } catch(e){ console.error(e); el('sync-result').innerText = "Sync failed"; }
+});
+
+async function fetchFeed(){
+  try {
+    const resp = await fetch(API + "/community/reports");
+    const data = await resp.json();
+    const container = el('report-feed'); container.innerHTML = "";
+    if(markersLayer) map.removeLayer(markersLayer);
+    markersLayer = L.layerGroup().addTo(map);
+
+    // newest first
+    const reports = (data.reports || []).slice().reverse();
+    for(let r of reports){
+      const card = document.createElement('div'); card.className = "report-card";
+      // live check
+      let check = null;
+      try {
+        if(r.report_type === "sms"){
+          const res = await fetch(API + "/check-sms-scam?content=" + encodeURIComponent(r.content));
+          check = await res.json();
+        } else {
+          const full = el('full-mode-select').value === "true";
+          const res = await fetch(API + "/check-ussd?code=" + encodeURIComponent(r.content) + "&full_mode=" + (full ? "true":"false"));
+          check = await res.json();
+        }
+      } catch(e){ console.warn("Check failed", e); }
+
+      // badge
+      let badgeText = "PENDING", badgeClass="pending";
+      if(check){
+        if(r.report_type === "sms"){
+          badgeText = check.scam ? "SCAM" : "SAFE"; badgeClass = check.scam ? "scam":"safe";
+        } else {
+          if(check.safe === true){ badgeText = "SAFE"; badgeClass="safe"; }
+          else if(check.score >= 8){ badgeText = "UNSAFE"; badgeClass="scam"; }
+          else { badgeText = "SUSPICIOUS"; badgeClass="unsafe"; }
+        }
+      }
+
+      card.innerHTML = `<b>${r.report_type.toUpperCase()}</b> <span class="badge ${badgeClass}">${badgeText}</span>
+                        <div style="margin-top:6px">${r.content}</div>
+                        <div style="color:#666;font-size:13px;margin-top:6px">${r.location || "Unknown"} — ${r.timestamp}</div>`;
+
+      if(check){
+        let det = "<div style='margin-top:8px;font-size:13px;color:#333'><b>Check details:</b><br/>";
+        if(r.report_type==="ussd"){
+          det += `Score: ${check.score} <br/>Safe: ${check.safe} <br/>Verified online: ${check.verified_online} <br/>Reasons: ${(check.reasons||[]).join("; ")}`;
+        } else {
+          det += `Scam flagged: ${check.scam}`;
+        }
+        det += "</div>";
+        card.innerHTML += det;
+      }
+
+      // admin actions
+      const adminDiv = document.createElement("div"); adminDiv.className="admin-actions";
+      const verifyBtn = document.createElement("button"); verifyBtn.innerText = "Verify (add safe)";
+      verifyBtn.onclick = async ()=> {
+        const all = await (await fetch(API + "/community/reports")).json();
+        const idx = all.reports.findIndex(rr=> rr.timestamp===r.timestamp && rr.content===r.content && rr.username===r.username);
+        if(idx===-1){ alert("Index not found"); return;}
+        const res = await fetch(API + "/community/update-report", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({index: idx, status:"Verified", action:"add_safe"})
+        });
+        const j = await res.json(); alert("Updated: " + JSON.stringify(j)); fetchFeed();
+      };
+      const rejectBtn = document.createElement("button"); rejectBtn.innerText="Reject";
+      rejectBtn.onclick = async ()=>{
+        const all = await (await fetch(API + "/community/reports")).json();
+        const idx = all.reports.findIndex(rr=> rr.timestamp===r.timestamp && rr.content===r.content && rr.username===r.username);
+        if(idx===-1){ alert("Index not found"); return;}
+        const res = await fetch(API + "/community/update-report", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({index: idx, status:"Rejected"})
+        });
+        const j = await res.json(); alert("Updated: " + JSON.stringify(j)); fetchFeed();
+      };
+      adminDiv.appendChild(verifyBtn); adminDiv.appendChild(rejectBtn);
+      card.appendChild(adminDiv);
+      container.appendChild(card);
+
+      // markers
+      if(r.lat && r.lon){
+        try { L.marker([r.lat, r.lon]).bindPopup(`<b>${r.report_type.toUpperCase()}</b><br/>${r.content}<br/>${r.location}`).addTo(markersLayer); }
+        catch(e){ console.warn(e); }
+      }
+    }
+  } catch(e){ console.error("Fetch feed failed", e); }
+}
+
+el('device-btn').addEventListener('click', async ()=>{
+  try {
+    const r = await fetch(API + "/device-checklist"); const j = await r.json();
+    el('device-info').innerText = JSON.stringify(j, null, 2);
+  } catch(e){ console.error(e); el('device-info').innerText="Device check failed"; }
+});
+
+// initial
+fetchFeed();
+setInterval(fetchFeed, 20000);
+</script>
+</body>
+</html>

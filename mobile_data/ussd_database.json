@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "generated_at": "2024-01-01T00:00:00",
+    "data_size": "compact",
+    "total_codes": 25,
+    "total_keywords": 20
+  },
+  "safe_ussd_codes": [
+    "*901#", "*902#", "*909#", "*911#", "*826#", "*989#", "*945#", "*322#", 
+    "*123#", "*124#", "*232#", "*121#", "*310#", "*311#", "*312#", "*323#", 
+    "*199#", "*#06#", "*#21#", "*#61#", "*#62#", "*#67#", "*123*1#", "*123*2#", "*123*4#"
+  ],
+  "scam_keywords": [
+    "won", "win", "prize", "lottery", "million", "cash", "award", "claim",
+    "urgent", "immediately", "bvn", "password", "pin", "transfer", "free",
+    "gift", "congratulations", "congrats", "account", "verification"
+  ],
+  "suspicious_patterns": [
+    "*xxx*xxx*xxx*xxx#", "*xxx*password*", "*xxx*bvn*", "*xxx*pin*", "*xxx*verif*"
+  ],
+  "rules": {
+    "max_segments": 4,
+    "suspicious_keywords": ["bvn", "pin", "password", "verif"],
+    "safe_prefixes": ["*123", "*310", "*311", "*901", "*909"]
+  }
+}

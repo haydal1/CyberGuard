@@ -1,0 +1,416 @@
+#!/usr/bin/env python3
+"""
+CyberMiniService - FULL HYBRID MODE (offline + pattern engine + online verification + caching)
+Save as app.py and run:
+  source venv/bin/activate
+  uvicorn app:app --reload --host 127.0.0.1 --port 8000
+"""
+import re, string, json, datetime, requests, hashlib, os, psutil, socket
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+
+# --------------------------
+# App & files
+# --------------------------
+BASE = Path(__file__).parent
+DATA_DIR = BASE / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+OFFLINE_SCAM_SMS = DATA_DIR / "scam_sms_keywords.txt"
+OFFLINE_USSD_CODES = DATA_DIR / "safe_ussd_codes.txt"
+COMMUNITY_REPORTS_DB = DATA_DIR / "community_reports.json"
+BLACKLIST_USSD = DATA_DIR / "blacklist_ussd.txt"
+USSD_CACHE = DATA_DIR / "ussd_cache.json"   # cache of online-verification results
+
+for f in [OFFLINE_SCAM_SMS, OFFLINE_USSD_CODES, COMMUNITY_REPORTS_DB, BLACKLIST_USSD, USSD_CACHE]:
+    if not f.exists():
+        if f == COMMUNITY_REPORTS_DB:
+            f.write_text("[]")
+        elif f == USSD_CACHE:
+            f.write_text("{}")
+        else:
+            f.touch()
+
+# Trusted sources list (admins may update)
+TRUSTED_USSD_SOURCE_URLS = [
+    # admin should populate with authoritative sources if available
+    # Example placeholders:
+    # "https://raw.githubusercontent.com/your-org/ussd-lists/main/safe_ussd_codes.txt"
+]
+
+# small set of safe prefixes / known telco starters (not exhaustive)
+SAFE_PREFIX_PATTERNS = ["*737", "*770", "*901", "*902", "*894", "*329", "*565", "*123", "*909", "*326", "*737"]
+
+# fallback offline location mapping for mapping
+NIGERIAN_LOCATIONS = {
+    "Abuja": {"lat": 9.05785, "lon": 7.49508},
+    "Lagos": {"lat": 6.5244, "lon": 3.3792},
+    "Port Harcourt": {"lat": 4.8156, "lon": 7.0498},
+    "Kano": {"lat": 12.0022, "lon": 8.5919},
+    "Ibadan": {"lat": 7.3775, "lon": 3.9470},
+    "Jos": {"lat": 9.8965, "lon": 8.8583},
+    "Enugu": {"lat": 6.4400, "lon": 7.4946},
+    "Abia": {"lat": 5.4541, "lon": 7.5153},
+    "Nasarawa": {"lat": 8.5083, "lon": 8.5215},
+}
+
+app = FastAPI(title="CyberMiniService - FULL HYBRID MODE", version="2.0")
+
+# --------------------------
+# Models
+# --------------------------
+class ReportRequest(BaseModel):
+    report_type: str
+    content: str
+    location: str = None
+    username: str = None
+
+class UpdateReportStatus(BaseModel):
+    index: int
+    status: str  # Verified / Rejected
+    action: str = None  # add_safe | add_blacklist
+
+class SyncRequest(BaseModel):
+    urls: list[str] = None
+
+# --------------------------
+# Utilities
+# --------------------------
+def is_online(timeout=1.0):
+    try:
+        requests.head("https://www.google.com", timeout=timeout)
+        return True
+    except:
+        return False
+
+def normalize_ussd(code: str):
+    if not code: return ""
+    return code.strip().replace(" ", "")
+
+def load_lines(path: Path):
+    try:
+        with open(path, "r") as f:
+            return [l.strip() for l in f if l.strip()]
+    except:
+        return []
+
+def read_reports():
+    try:
+        return json.loads(COMMUNITY_REPORTS_DB.read_text())
+    except:
+        return []
+
+def write_reports(reports):
+    COMMUNITY_REPORTS_DB.write_text(json.dumps(reports, indent=2))
+
+def load_safe_ussd():
+    return {normalize_ussd(x) for x in load_lines(OFFLINE_USSD_CODES)}
+
+def load_blacklist_ussd():
+    return {normalize_ussd(x) for x in load_lines(BLACKLIST_USSD)}
+
+def read_ussd_cache():
+    try:
+        return json.loads(USSD_CACHE.read_text())
+    except:
+        return {}
+
+def write_ussd_cache(d):
+    USSD_CACHE.write_text(json.dumps(d, indent=2))
+
+# --------------------------
+# Geocoding (online fallback then offline)
+# --------------------------
+def geocode_location(location: str):
+    if not location:
+        return None, None
+    try:
+        resp = requests.get("https://nominatim.openstreetmap.org/search",
+                            params={"q": f"{location}, Nigeria", "format":"json", "limit":1},
+                            headers={"User-Agent":"CyberMiniService/2.0"}, timeout=4)
+        data = resp.json()
+        if data:
+            return float(data[0]["lat"]), float(data[0]["lon"])
+    except:
+        pass
+    loc = NIGERIAN_LOCATIONS.get(location.title())
+    if loc: return loc["lat"], loc["lon"]
+    return None, None
+
+# --------------------------
+# Pattern-based USSD scoring engine
+# --------------------------
+def pattern_score_ussd(code: str):
+    """
+    Returns score (higher -> more risky), and reasons list.
+    Tunable heuristics focusing on Nigerian threat patterns.
+    """
+    reasons = []
+    score = 0
+    c = normalize_ussd(code)
+    if not c:
+        return 100, ["Empty or malformed code"]
+
+    norm = c
+    # Basic format check
+    if not re.match(r"^\*[\d\*\#A-Za-z]+#?$", norm):
+        reasons.append("Non-standard USSD characters or format")
+        score += 4
+
+    # Too many segments may indicate multi-step prompts that collect data
+    segments = re.sub(r"^\*|\#$", "", norm).split("*")
+    if len(segments) > 3:
+        reasons.append(f"Many segments ({len(segments)}) — possibly chained prompts")
+        score += 3
+
+    # Suspicious keywords
+    kw = ["bvn","pin","otp","account","verify","password","passwords","pinno","pin#","nin"]
+    low = norm.lower()
+    for k in kw:
+        if k in low:
+            reasons.append(f"Contains sensitive keyword '{k}'")
+            score += 6
+
+    # If contains letters — unusual for typical bank USSD codes
+    if re.search(r"[A-Za-z]", norm):
+        reasons.append("Contains letters (unusual for standard bank USSD)")
+        score += 1
+
+    # Very long numeric strings: may be asking for personal numbers
+    digits = re.sub(r"\D", "", norm)
+    if len(digits) >= 8 and len(digits) <= 20:
+        # presence of a long numeric substring is suspicious for data collection
+        reasons.append("Contains long numeric substring (may request full identity/number)")
+        score += 2
+
+    # Repeated segments e.g., *111*111# suspicious
+    if len(set(segments)) <= 1 and len(segments) > 1:
+        reasons.append("Repeating segments — suspicious")
+        score += 2
+
+    # Unknown prefix (not in SAFEPATTERNS) -> slightly suspicious
+    if not any(norm.startswith(p) for p in SAFE_PREFIX_PATTERNS):
+        reasons.append("Prefix not in known safe pattern list")
+        score += 1
+
+    # If score high, label risky
+    return score, reasons
+
+# --------------------------
+# Online verification helper (use TRUSTED_USSD_SOURCE_URLS)
+# returns (verified_bool, source_url or None)
+# --------------------------
+def online_verify_ussd(code: str, urls: list=None):
+    urls = urls or TRUSTED_USSD_SOURCE_URLS
+    if not urls:
+        return False, None
+    norm = normalize_ussd(code).lower()
+    for u in urls:
+        try:
+            r = requests.get(u, timeout=6)
+            if r.status_code != 200: continue
+            txt = r.text.lower()
+            if norm in txt:
+                return True, u
+        except:
+            continue
+    return False, None
+
+# --------------------------
+# USSD check endpoint (hybrid)
+# --------------------------
+@app.get("/check-ussd")
+def check_ussd(code: str = Query(...), full_mode: bool = Query(False)):
+    """
+    Returns:
+      { code, safe: bool, score: int, reasons: [...], verified_online: bool, source: ..., cached: bool }
+    full_mode -> try online verification if internet available
+    """
+    if not code:
+        raise HTTPException(status_code=400, detail="USSD code required")
+
+    norm = normalize_ussd(code)
+    safe_set = load_safe_ussd()
+    blacklist = load_blacklist_ussd()
+    cache = read_ussd_cache()
+
+    # blacklist check
+    if norm in blacklist:
+        return {"code": norm, "safe": False, "score": 100, "reasons":["Known blacklisted code"], "verified_online": False, "source":"local_blacklist", "cached": False}
+
+    # cached online verification
+    if norm in cache:
+        entry = cache[norm]
+        return {"code": norm, "safe": entry.get("safe", False), "score": entry.get("score", 0),
+                "reasons": entry.get("reasons", []), "verified_online": entry.get("verified_online", False),
+                "source": entry.get("source"), "cached": True}
+
+    # exact offline safe list check
+    if norm in safe_set:
+        score, reasons = pattern_score_ussd(norm)
+        safe = score < 6
+        # return but still allow full_mode to verify online if asked
+        result = {"code": norm, "safe": safe, "score": score, "reasons": reasons, "verified_online": False, "source":"local_safe_list", "cached": False}
+        if full_mode and is_online():
+            v, src = online_verify_ussd(norm)
+            if v:
+                result.update({"safe": True, "verified_online": True, "source": src})
+                # cache
+                cache[norm] = {"safe": True, "score": score, "reasons": reasons, "verified_online": True, "source": src}
+                write_ussd_cache(cache)
+        return result
+
+    # pattern analysis always applies
+    score, reasons = pattern_score_ussd(norm)
+
+    # attempt online verification if requested and online
+    verified_online = False
+    source = None
+    if full_mode and is_online():
+        v, src = online_verify_ussd(norm)
+        verified_online = v
+        source = src
+        if v:
+            # cache and treat as safe
+            cache[norm] = {"safe": True, "score": score, "reasons": reasons + [f"Verified by {src}"], "verified_online": True, "source": src}
+            write_ussd_cache(cache)
+            return {"code": norm, "safe": True, "score": score, "reasons": reasons + [f"Verified by {src}"], "verified_online": True, "source": src, "cached": True}
+
+    # heuristic thresholds
+    # tuning: >=8 strongly unsafe, 5-7 suspicious, <5 likely safe
+    if score >= 8:
+        return {"code": norm, "safe": False, "score": score, "reasons": reasons, "verified_online": verified_online, "source": source, "cached": False}
+    elif score >= 5:
+        return {"code": norm, "safe": False, "score": score, "reasons": reasons + ["Suspicious pattern — avoid using"], "verified_online": verified_online, "source": source, "cached": False}
+    else:
+        return {"code": norm, "safe": True, "score": score, "reasons": reasons, "verified_online": verified_online, "source": source, "cached": False}
+
+# --------------------------
+# SMS scam detection (offline)
+# --------------------------
+@app.get("/check-sms-scam")
+def check_sms_scam(content: str = Query(...)):
+    if not OFFLINE_SCAM_SMS.exists():
+        return {"content": content, "scam": False}
+    normalized = content.lower().translate(str.maketrans('', '', string.punctuation))
+    keywords = [k.lower().translate(str.maketrans('', '', string.punctuation)) for k in load_lines(OFFLINE_SCAM_SMS)]
+    scam = any(k in normalized for k in keywords)
+    return {"content": content, "scam": scam}
+
+# --------------------------
+# Community report endpoints + admin actions
+# --------------------------
+@app.post("/community/report")
+def submit_report(report: ReportRequest):
+    reports = read_reports()
+    lat, lon = geocode_location(report.location) if report.location else (None, None)
+    entry = {
+        "report_type": report.report_type,
+        "content": report.content,
+        "location": report.location or "Unknown",
+        "username": report.username or "Anonymous",
+        "timestamp": str(datetime.datetime.now()),
+        "status": "Pending",
+        "lat": lat,
+        "lon": lon
+    }
+    reports.append(entry)
+    write_reports(reports)
+    return {"message":"Report submitted successfully", "report": entry}
+
+@app.get("/community/reports")
+def get_reports(status: str = None):
+    reports = read_reports()
+    if status:
+        reports = [r for r in reports if r.get("status","").lower() == status.lower()]
+    return {"reports": reports}
+
+@app.post("/community/update-report")
+def update_report_status(data: UpdateReportStatus):
+    reports = read_reports()
+    if data.index < 0 or data.index >= len(reports):
+        raise HTTPException(status_code=400, detail="Invalid report index")
+    reports[data.index]["status"] = data.status
+    # admin action: add to safe list or blacklist
+    if data.action == "add_safe":
+        code = normalize_ussd(reports[data.index]["content"])
+        safe = load_safe_ussd()
+        if code not in safe:
+            with open(OFFLINE_USSD_CODES, "a") as fh:
+                fh.write(code + "\n")
+    if data.action == "add_blacklist":
+        code = normalize_ussd(reports[data.index]["content"])
+        bl = load_blacklist_ussd()
+        if code not in bl:
+            with open(BLACKLIST_USSD, "a") as fh:
+                fh.write(code + "\n")
+    write_reports(reports)
+    return {"message":"Report status updated", "report": reports[data.index]}
+
+# --------------------------
+# Sync endpoint to pull safe USSD lists from trusted URLs (admin)
+# --------------------------
+@app.post("/admin/sync-ussd")
+def sync_ussd(req: SyncRequest):
+    urls = req.urls or TRUSTED_USSD_SOURCE_URLS
+    if not urls:
+        raise HTTPException(status_code=400, detail="No sync URLs configured.")
+    fetched = set()
+    for u in urls:
+        try:
+            r = requests.get(u, timeout=6)
+            if r.status_code != 200:
+                continue
+            for ln in r.text.splitlines():
+                cand = ln.strip()
+                if not cand: continue
+                cand_norm = normalize_ussd(cand)
+                if re.search(r"^\*\d[\d\*#A-Za-z]+\#?$", cand_norm):
+                    fetched.add(cand_norm)
+        except:
+            continue
+    if not fetched:
+        return {"message":"No codes fetched", "fetched": []}
+    safe = load_safe_ussd()
+    merged = sorted(set(list(safe) + list(fetched)))
+    with open(OFFLINE_USSD_CODES, "w") as fh:
+        fh.write("\n".join(merged) + "\n")
+    return {"message":"Synced USSD list", "added": len(merged) - len(safe), "total": len(merged)}
+
+# --------------------------
+# Device checklist etc.
+# --------------------------
+@app.get("/device-checklist")
+def device_checklist():
+    return {
+        "cpu_cores": psutil.cpu_count(),
+        "memory_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+        "disk_gb": round(psutil.disk_usage('/').total / (1024**3), 2),
+        "platform": os.name,
+    }
+
+# --------------------------
+# Password check (HIBP)
+# --------------------------
+@app.get("/check-password")
+def check_password(password: str = Query(...)):
+    h = hashlib.sha1(password.encode()).hexdigest().upper()
+    try:
+        resp = requests.get(f"https://api.pwnedpasswords.com/range/{h[:5]}", timeout=5)
+        lines = (ln.split(":") for ln in resp.text.splitlines())
+        count = sum(int(c) for hh,c in lines if hh == h[5:])
+        return {"password": password, "pwned_count": count, "safe": count == 0}
+    except:
+        return {"password": password, "pwned_count": -1, "safe": False}
+
+# --------------------------
+# Dashboard file
+# --------------------------
+@app.get("/dashboard")
+def dashboard():
+    p = BASE / "dashboard.html"
+    if p.exists():
+        return FileResponse(p)
+    raise HTTPException(status_code=404, detail="Dashboard not found")
